@@ -13,6 +13,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENC
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.MECANUM;
+import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.STANDARD;
 
 public class Robot {
     public double drivePower = 1;
@@ -23,7 +24,7 @@ public class Robot {
         STANDARD, MECANUM
     }
 
-    private RobotDriveType driveType = MECANUM;
+    private RobotDriveType driveType = STANDARD;
 
     private DcMotor driveLeftFront;
     private DcMotor driveRightFront;
