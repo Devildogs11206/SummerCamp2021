@@ -31,6 +31,8 @@ public class Robot {
     private DcMotor driveLeftRear;
     private DcMotor driveRightRear;
 
+    private DcMotor gate;
+
     public String error;
 
     public Robot(OpMode opMode) {
@@ -72,6 +74,12 @@ public class Robot {
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
+
+        gate = hardwareMap.get(DcMotor.class, "gate");
+        gate.setDirection(REVERSE);
+        gate.setZeroPowerBehavior(BRAKE);
+        gate.setMode(STOP_AND_RESET_ENCODER);
+        gate.setMode(RUN_USING_ENCODER);
     }
 
     public void calibrate() {
@@ -105,6 +113,10 @@ public class Robot {
         driveRightRear.setPower(rr);
     }
 
+    public void moveGate(double power) {
+        gate.setPower(power);
+    }
+
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 
@@ -114,6 +126,7 @@ public class Robot {
         telemetry.addData("Drive (LR)", "%.2f Pow, %d Pos", driveLeftRear.getPower(), driveLeftRear.getCurrentPosition());
         telemetry.addData("Drive (RF)", "%.2f Pow, %d Pos", driveRightFront.getPower(), driveRightFront.getCurrentPosition());
         telemetry.addData("Drive (RR)", "%.2f Pow, %d Pos", driveRightRear.getPower(), driveRightRear.getCurrentPosition());
+        telemetry.addData("Gate", "%.2f Pow, %d Pos", gate.getPower(), gate.getCurrentPosition());
 
         telemetry.addLine();
 
