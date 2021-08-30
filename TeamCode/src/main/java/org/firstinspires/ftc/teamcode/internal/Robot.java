@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
@@ -29,6 +30,9 @@ public class Robot {
     private DcMotor driveRightFront;
     private DcMotor driveLeftRear;
     private DcMotor driveRightRear;
+
+    private Servo armLeft;
+    private Servo armRight;
 
     public String error;
 
@@ -71,6 +75,9 @@ public class Robot {
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
+
+        armLeft = hardwareMap.get(Servo.class, "armLeft");
+        armRight = hardwareMap.get(Servo.class, "armRight");
     }
 
     public void calibrate() {
@@ -104,6 +111,18 @@ public class Robot {
         driveRightRear.setPower(rr);
     }
 
+    public void armLeft(double increment) {
+        armLeft.setPosition(
+            clamp(0.5, 1, armLeft.getPosition() + increment)
+        );
+    }
+
+    public void armRight(double increment) {
+        armRight.setPosition(
+            clamp(0, 0.5, armRight.getPosition() + increment)
+        );
+    }
+
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 
@@ -114,9 +133,16 @@ public class Robot {
         telemetry.addData("Drive (RF)", "%.2f Pow, %d Pos", driveRightFront.getPower(), driveRightFront.getCurrentPosition());
         telemetry.addData("Drive (RR)", "%.2f Pow, %d Pos", driveRightRear.getPower(), driveRightRear.getCurrentPosition());
 
+        telemetry.addData("Arm (L)", "%.2f Pos", armLeft.getPosition());
+        telemetry.addData("Arm (R)", "%.2f Pos", armRight.getPosition());
+
         telemetry.addLine();
 
         if (error != null && !error.isEmpty())
             telemetry.addData("Error", error);
+    }
+
+    private double clamp(double min, double max, double value) {
+        return Math.max(min, Math.min(max, value));
     }
 }
