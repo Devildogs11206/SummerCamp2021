@@ -30,6 +30,8 @@ public class Robot {
     private DcMotor driveLeftRear;
     private DcMotor driveRightRear;
 
+    private DcMotor lift;
+
     public String error;
 
     public Robot(OpMode opMode) {
@@ -71,6 +73,12 @@ public class Robot {
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
+
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        lift.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift.setZeroPowerBehavior(BRAKE);
+        lift.setMode(STOP_AND_RESET_ENCODER);
+        lift.setMode(RUN_USING_ENCODER);
     }
 
     public void calibrate() {
@@ -104,6 +112,20 @@ public class Robot {
         driveRightRear.setPower(rr);
     }
 
+    public enum LiftMode {
+        STOPPED(0), FORWARD(0.10), BACKWARD(-0.10);
+
+        public double power;
+
+        LiftMode(double power) {
+            this.power = power;
+        }
+    }
+
+    public void lift(LiftMode mode) {
+        lift.setPower(mode.power);
+    }
+
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 
@@ -113,6 +135,8 @@ public class Robot {
         telemetry.addData("Drive (LR)", "%.2f Pow, %d Pos", driveLeftRear.getPower(), driveLeftRear.getCurrentPosition());
         telemetry.addData("Drive (RF)", "%.2f Pow, %d Pos", driveRightFront.getPower(), driveRightFront.getCurrentPosition());
         telemetry.addData("Drive (RR)", "%.2f Pow, %d Pos", driveRightRear.getPower(), driveRightRear.getCurrentPosition());
+
+        telemetry.addData("Lift", "%.2f Pow, %d Pos", lift.getPower(), lift.getCurrentPosition());
 
         telemetry.addLine();
 
