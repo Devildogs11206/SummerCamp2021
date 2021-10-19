@@ -17,13 +17,13 @@ import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.MECAN
 public class Robot {
     public double drivePower = 1;
 
-    private OpMode opMode;
+    private final OpMode opMode;
 
     public enum RobotDriveType {
-        STANDARD, MECANUM
+        @SuppressWarnings("unused") STANDARD, MECANUM
     }
 
-    private RobotDriveType driveType = MECANUM;
+    private final RobotDriveType driveType = MECANUM;
 
     private DcMotor driveLeftFront;
     private DcMotor driveRightFront;
@@ -113,7 +113,7 @@ public class Robot {
     }
 
     public enum LiftMode {
-        STOPPED(0), FORWARD(0.10), BACKWARD(-0.10);
+        STOPPED(0), FORWARD(0.50), BACKWARD(-0.50);
 
         public double power;
 

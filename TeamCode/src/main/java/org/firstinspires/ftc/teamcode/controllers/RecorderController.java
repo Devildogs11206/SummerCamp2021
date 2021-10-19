@@ -49,7 +49,7 @@ public class RecorderController extends RobotController {
         }
     }
 
-    private static String BASE_DIR = "recordings/";
+    private static final String BASE_DIR = "recordings/";
 
     private RecorderSettings settings = new RecorderSettings();
 

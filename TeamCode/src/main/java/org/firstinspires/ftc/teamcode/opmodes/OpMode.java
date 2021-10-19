@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.internal.Robot;
 
 public abstract class OpMode extends LinearOpMode {
-    private boolean calibrate;
+    private final boolean calibrate;
 
     public Robot robot;
 
@@ -30,12 +30,12 @@ public abstract class OpMode extends LinearOpMode {
     }
 
     public boolean isActive() {
-        yield();
+        this.yield();
         return opModeIsActive();
     }
 
     public boolean isStopping() {
-        yield();
+        this.yield();
         return isStopRequested() || gamepad1.back || gamepad2.back;
     }
 

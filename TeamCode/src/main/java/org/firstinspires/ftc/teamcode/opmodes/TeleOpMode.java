@@ -8,16 +8,15 @@ import org.firstinspires.ftc.teamcode.controllers.RecorderController;
 import org.firstinspires.ftc.teamcode.controllers.RobotController;
 
 @TeleOp
+@SuppressWarnings("unused")
 public class TeleOpMode extends OpMode {
-    private RobotController[] robotControllers;
-
     public TeleOpMode() {
         super(true);
     }
 
     @Override
     protected void execute() {
-        robotControllers = new RobotController[] {
+        RobotController[] robotControllers = new RobotController[] {
             new RecorderController(this),
             new DriveController(this),
             new LiftController(this)
