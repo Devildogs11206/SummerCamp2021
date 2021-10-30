@@ -6,18 +6,29 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZYX;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.INTRINSIC;
 import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.MECANUM;
 
 public class Robot {
     public double drivePower = 1;
+    private static final double INCHES_PER_ROTATION = 3.95 * Math.PI;
+    private static final double TICKS_PER_INCH = 537.6 / INCHES_PER_ROTATION;
 
     private final OpMode opMode;
+
+    private BNO055IMU imu;
 
     public enum RobotDriveType {
         @SuppressWarnings("unused") STANDARD, MECANUM
@@ -31,6 +42,11 @@ public class Robot {
     private DcMotor driveRightRear;
 
     private DcMotor lift;
+
+    public boolean navigationTargetVisible = false;
+    public Position position = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
+    public Orientation orientation = new Orientation();
+
 
     public String error;
 
@@ -48,6 +64,9 @@ public class Robot {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
 
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
         drivePower = 0.5;
 
         driveLeftFront = hardwareMap.get(DcMotor.class, "driveLeftFront");
@@ -57,25 +76,25 @@ public class Robot {
         driveLeftFront.setMode(RUN_USING_ENCODER);
 
         driveRightFront = hardwareMap.get(DcMotor.class,"driveRightFront");
-        driveRightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        driveRightFront.setDirection(FORWARD);
         driveRightFront.setZeroPowerBehavior(BRAKE);
         driveRightFront.setMode(STOP_AND_RESET_ENCODER);
         driveRightFront.setMode(RUN_USING_ENCODER);
 
         driveLeftRear = hardwareMap.get(DcMotor.class,"driveLeftRear");
-        driveLeftRear.setDirection(REVERSE);
+        driveLeftRear.setDirection(FORWARD);
         driveLeftRear.setZeroPowerBehavior(BRAKE);
         driveLeftRear.setMode(STOP_AND_RESET_ENCODER);
         driveLeftRear.setMode(RUN_USING_ENCODER);
 
         driveRightRear = hardwareMap.get(DcMotor.class, "driveRightRear");
-        driveRightRear.setDirection(DcMotorSimple.Direction.FORWARD);
+        driveRightRear.setDirection(REVERSE);
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
 
         lift = hardwareMap.get(DcMotor.class, "lift");
-        lift.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift.setDirection(FORWARD);
         lift.setZeroPowerBehavior(BRAKE);
         lift.setMode(STOP_AND_RESET_ENCODER);
         lift.setMode(RUN_USING_ENCODER);
@@ -112,6 +131,54 @@ public class Robot {
         driveRightRear.setPower(rr);
     }
 
+    public void drive(double drive, double strafe, double heading, double inches) {
+        if (opMode.isStopping()) return;
+
+        double power = clamp(0.2, 1.0, drive + strafe);
+
+        turn(power, heading);
+
+        resetEncoders();
+
+        int targetPosition = (int) (inches * TICKS_PER_INCH);
+        int position = 0;
+
+        double remainder, turn;
+
+        while (!opMode.isStopping() && targetPosition - position > 0) {
+            remainder = getRemainderLeftToTurn(heading);
+            if (drive != 0)
+                drive = clamp(0.2, drive, (targetPosition - position) / (TICKS_PER_INCH * 12));
+            if (strafe != 0)
+                strafe = clamp(0.2, strafe, (targetPosition - position) / (TICKS_PER_INCH * 12));
+            turn = remainder / 45;
+            drive(drive, strafe, turn);
+
+            position = (
+                    Math.abs(driveLeftFront.getCurrentPosition()) +
+                            Math.abs(driveLeftRear.getCurrentPosition()) +
+                            Math.abs(driveRightFront.getCurrentPosition()) +
+                            Math.abs(driveRightRear.getCurrentPosition())
+            ) / 4;
+        }
+    }
+
+    public void turn(double power, double heading) {
+        if (opMode.isStopping()) return;
+
+        power = Math.abs(power);
+
+        double remainder, turn;
+
+        do {
+            remainder = getRemainderLeftToTurn(heading);
+            turn = clamp(0.2, power, remainder / 45 * power);
+            drive(0, 0,turn);
+        } while (!opMode.isStopping() && (remainder < -1 || remainder > 1));
+
+        drive(0, 0, 0);
+    }
+
     public enum LiftMode {
         STOPPED(0), FORWARD(0.50), BACKWARD(-0.50);
 
@@ -142,5 +209,34 @@ public class Robot {
 
         if (error != null && !error.isEmpty())
             telemetry.addData("Error", error);
+    }
+    public Orientation getOrientation() {
+        return imu.getAngularOrientation(INTRINSIC, ZYX, DEGREES);
+    }
+
+    private double getRemainderLeftToTurn(double heading) {
+        double remainder;
+        orientation = getOrientation();
+        remainder = orientation.firstAngle - heading;
+        if (remainder > +180) remainder -= 360;
+        if (remainder < -180) remainder += 360;
+        return remainder;
+    }
+
+    private void resetEncoders() {
+        driveLeftFront.setMode(STOP_AND_RESET_ENCODER);
+        driveLeftFront.setMode(RUN_USING_ENCODER);
+        driveLeftRear.setMode(STOP_AND_RESET_ENCODER);
+        driveLeftRear.setMode(RUN_USING_ENCODER);
+        driveRightFront.setMode(STOP_AND_RESET_ENCODER);
+        driveRightFront.setMode(RUN_USING_ENCODER);
+        driveRightRear.setMode(STOP_AND_RESET_ENCODER);
+        driveRightRear.setMode(RUN_USING_ENCODER);
+    }
+
+    private double clamp(double min, double max, double value) {
+        return value >= 0 ?
+                Math.min(max, Math.max(min, value)) :
+                Math.min(-min, Math.max(-max, value));
     }
 }
