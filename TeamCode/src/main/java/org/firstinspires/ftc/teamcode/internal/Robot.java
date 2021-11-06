@@ -43,10 +43,11 @@ public class Robot {
 
     private DcMotor lift;
 
+    private DcMotor intakeWheel;
+
     public boolean navigationTargetVisible = false;
     public Position position = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
     public Orientation orientation = new Orientation();
-
 
     public String error;
 
@@ -163,6 +164,20 @@ public class Robot {
         }
     }
 
+    public void driveTest() {
+        driveLeftFront.setPower(drivePower);
+        driveRightFront.setPower(drivePower);
+        driveLeftRear.setPower(drivePower);
+        driveRightRear.setPower(drivePower);
+
+        opMode.sleep(10000);
+
+        driveLeftFront.setPower(0);
+        driveRightFront.setPower(0);
+        driveLeftRear.setPower(0);
+        driveRightRear.setPower(0);
+    }
+
     public void turn(double power, double heading) {
         if (opMode.isStopping()) return;
 
@@ -193,14 +208,31 @@ public class Robot {
         lift.setPower(mode.power);
     }
 
+    public enum IntakeWheelMode {
+        FORWARD(1), NEUTRAL(0), REVERSE(-1);
+
+        public double power;
+
+        IntakeWheelMode(double power) {
+            this.power = power;
+        }
+    }
+
+    public IntakeWheelMode intakeWheelMode = IntakeWheelMode.NEUTRAL;
+
+    public void intake(IntakeWheelMode mode) {
+        intakeWheel.setPower(mode.power);
+        intakeWheelMode = mode;
+    }
+
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 
         telemetry.addData("Drive", "%.2f Pow", opMode.gamepad1.left_stick_y);
         telemetry.addData("Turn", "%.2f Pow", opMode.gamepad1.right_stick_x);
         telemetry.addData("Drive (LF)", "%.2f Pow, %d Pos", driveLeftFront.getPower(), driveLeftFront.getCurrentPosition());
-        telemetry.addData("Drive (LR)", "%.2f Pow, %d Pos", driveLeftRear.getPower(), driveLeftRear.getCurrentPosition());
         telemetry.addData("Drive (RF)", "%.2f Pow, %d Pos", driveRightFront.getPower(), driveRightFront.getCurrentPosition());
+        telemetry.addData("Drive (LR)", "%.2f Pow, %d Pos", driveLeftRear.getPower(), driveLeftRear.getCurrentPosition());
         telemetry.addData("Drive (RR)", "%.2f Pow, %d Pos", driveRightRear.getPower(), driveRightRear.getCurrentPosition());
 
         telemetry.addData("Lift", "%.2f Pow, %d Pos", lift.getPower(), lift.getCurrentPosition());
@@ -210,6 +242,7 @@ public class Robot {
         if (error != null && !error.isEmpty())
             telemetry.addData("Error", error);
     }
+
     public Orientation getOrientation() {
         return imu.getAngularOrientation(INTRINSIC, ZYX, DEGREES);
     }
@@ -236,7 +269,7 @@ public class Robot {
 
     private double clamp(double min, double max, double value) {
         return value >= 0 ?
-                Math.min(max, Math.max(min, value)) :
-                Math.min(-min, Math.max(-max, value));
+            Math.min(max, Math.max(min, value)) :
+            Math.min(-min, Math.max(-max, value));
     }
 }
