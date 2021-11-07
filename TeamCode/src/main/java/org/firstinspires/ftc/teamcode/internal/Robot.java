@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
@@ -83,13 +84,13 @@ public class Robot {
         driveRightFront.setMode(RUN_USING_ENCODER);
 
         driveLeftRear = hardwareMap.get(DcMotor.class,"driveLeftRear");
-        driveLeftRear.setDirection(FORWARD);
+        driveLeftRear.setDirection(REVERSE);
         driveLeftRear.setZeroPowerBehavior(BRAKE);
         driveLeftRear.setMode(STOP_AND_RESET_ENCODER);
         driveLeftRear.setMode(RUN_USING_ENCODER);
 
         driveRightRear = hardwareMap.get(DcMotor.class, "driveRightRear");
-        driveRightRear.setDirection(REVERSE);
+        driveRightRear.setDirection(FORWARD);
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
