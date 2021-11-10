@@ -14,8 +14,8 @@ public class IntakeController extends RobotController {
 
     @Override
     public void execute() {
-        if (gamepad2.right_trigger > 0.5 ) robot.intake(FORWARD);
-        else if (gamepad2.left_trigger > 0.5 ) robot.intake(REVERSE);
+        if (gamepad1.right_trigger > 0.5 ) robot.intake(FORWARD);
+        else if (gamepad1.left_trigger > 0.5 ) robot.intake(REVERSE);
         else robot.intake(NEUTRAL);
     }
 }

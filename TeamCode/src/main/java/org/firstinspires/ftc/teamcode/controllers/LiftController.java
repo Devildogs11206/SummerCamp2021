@@ -13,8 +13,8 @@ public class LiftController extends RobotController {
 
     @Override
     public void execute() {
-        if(gamepad2.dpad_right) robot.lift(FORWARD);
-        else if(gamepad2.dpad_left) robot.lift(BACKWARD);
+        if(gamepad1.right_bumper) robot.lift(FORWARD);
+        else if(gamepad1.left_bumper) robot.lift(BACKWARD);
         else robot.lift(STOPPED);
     }
 }

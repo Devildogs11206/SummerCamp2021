@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.internal;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -12,11 +12,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
-import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
+import static com.qualcomm.robotcore.hardware.DigitalChannel.Mode.INPUT;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZYX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.INTRINSIC;
@@ -44,7 +44,10 @@ public class Robot {
 
     private DcMotor lift;
 
-    private DcMotor intakeWheel;
+    private DigitalChannel liftLimitLeftFront;
+    private DigitalChannel liftLimitRightFront;
+
+    private DcMotor intake;
 
     public boolean navigationTargetVisible = false;
     public Position position = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
@@ -100,14 +103,29 @@ public class Robot {
         lift.setZeroPowerBehavior(BRAKE);
         lift.setMode(STOP_AND_RESET_ENCODER);
         lift.setMode(RUN_USING_ENCODER);
+
+        liftLimitLeftFront = hardwareMap.get(DigitalChannel.class, "liftLimitLeftFront");
+        liftLimitLeftFront.setMode(INPUT);
+        liftLimitRightFront = hardwareMap.get(DigitalChannel.class, "liftLimitRightFront");
+        liftLimitRightFront.setMode(INPUT);
+
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setDirection(FORWARD);
+        intake.setZeroPowerBehavior(BRAKE);
+        intake.setMode(STOP_AND_RESET_ENCODER);
+        intake.setMode(RUN_USING_ENCODER);
     }
 
     public void calibrate() {
-
     }
 
     public void start() {
+        lift(LiftMode.FORWARD);
 
+        while (!this.isLiftAtFrontLimit())
+            opMode.sleep(50);
+
+        lift(LiftMode.STOPPED);
     }
 
     public void drive(double drive, double strafe, double turn) {
@@ -196,7 +214,7 @@ public class Robot {
     }
 
     public enum LiftMode {
-        STOPPED(0), FORWARD(0.50), BACKWARD(-0.50);
+        STOPPED(0), FORWARD(1.00), BACKWARD(-1.00);
 
         public double power;
 
@@ -206,11 +224,20 @@ public class Robot {
     }
 
     public void lift(LiftMode mode) {
+        if (mode == LiftMode.FORWARD && this.isLiftAtFrontLimit())
+            mode = LiftMode.STOPPED;
+
         lift.setPower(mode.power);
     }
 
+    public void lift(LiftMode mode, int milliseconds) {
+        lift(mode);
+        opMode.sleep(milliseconds);
+        lift(LiftMode.STOPPED);
+    }
+
     public enum IntakeWheelMode {
-        FORWARD(1), NEUTRAL(0), REVERSE(-1);
+        FORWARD(.5), NEUTRAL(0), REVERSE(-.5);
 
         public double power;
 
@@ -222,10 +249,14 @@ public class Robot {
     public IntakeWheelMode intakeWheelMode = IntakeWheelMode.NEUTRAL;
 
     public void intake(IntakeWheelMode mode) {
-        intakeWheel.setPower(mode.power);
+        intake.setPower(mode.power);
         intakeWheelMode = mode;
     }
-
+    public void intake(IntakeWheelMode mode, int milliseconds) {
+        intake(mode);
+        opMode.sleep(milliseconds);
+        intake(IntakeWheelMode.NEUTRAL);
+    }
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 
@@ -237,6 +268,9 @@ public class Robot {
         telemetry.addData("Drive (RR)", "%.2f Pow, %d Pos", driveRightRear.getPower(), driveRightRear.getCurrentPosition());
 
         telemetry.addData("Lift", "%.2f Pow, %d Pos", lift.getPower(), lift.getCurrentPosition());
+        telemetry.addData("Intake", "%.2f Pow, %d Pos", intake.getPower(), intake.getCurrentPosition());
+        telemetry.addData("Lift Limit Left Front", liftLimitLeftFront.getState());
+        telemetry.addData("Lift Limit Right Front", liftLimitRightFront.getState());
 
         telemetry.addLine();
 
@@ -272,5 +306,11 @@ public class Robot {
         return value >= 0 ?
             Math.min(max, Math.max(min, value)) :
             Math.min(-min, Math.max(-max, value));
+    }
+
+    private boolean isLiftAtFrontLimit() {
+        boolean leftPressed = !liftLimitLeftFront.getState();
+        boolean rightPressed = !liftLimitRightFront.getState();
+        return leftPressed || rightPressed;
     }
 }
