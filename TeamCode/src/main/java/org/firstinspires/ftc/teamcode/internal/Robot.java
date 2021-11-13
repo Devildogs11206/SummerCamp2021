@@ -11,7 +11,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_TO_POSITION;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
@@ -117,6 +119,7 @@ public class Robot {
     }
 
     public void calibrate() {
+
     }
 
     public void start() {
@@ -126,6 +129,11 @@ public class Robot {
             opMode.sleep(50);
 
         lift(LiftMode.STOPPED);
+
+        opMode.sleep(50);
+
+        lift.setMode(STOP_AND_RESET_ENCODER);
+        lift.setMode(RUN_USING_ENCODER);
     }
 
     public void drive(double drive, double strafe, double turn) {
@@ -175,10 +183,10 @@ public class Robot {
             drive(drive, strafe, turn);
 
             position = (
-                    Math.abs(driveLeftFront.getCurrentPosition()) +
-                            Math.abs(driveLeftRear.getCurrentPosition()) +
-                            Math.abs(driveRightFront.getCurrentPosition()) +
-                            Math.abs(driveRightRear.getCurrentPosition())
+                Math.abs(driveLeftFront.getCurrentPosition()) +
+                Math.abs(driveLeftRear.getCurrentPosition()) +
+                Math.abs(driveRightFront.getCurrentPosition()) +
+                Math.abs(driveRightRear.getCurrentPosition())
             ) / 4;
         }
     }
@@ -224,9 +232,11 @@ public class Robot {
     }
 
     public void lift(LiftMode mode) {
-        if (mode == LiftMode.FORWARD && this.isLiftAtFrontLimit())
+        if ((mode == LiftMode.FORWARD && this.isLiftAtFrontLimit()) ||
+            (mode == LiftMode.BACKWARD && lift.getCurrentPosition() < LiftPosition.MAX.position))
             mode = LiftMode.STOPPED;
 
+        lift.setMode(RUN_USING_ENCODER);
         lift.setPower(mode.power);
     }
 
@@ -236,27 +246,42 @@ public class Robot {
         lift(LiftMode.STOPPED);
     }
 
-    public enum IntakeWheelMode {
-        FORWARD(.5), NEUTRAL(0), REVERSE(-.5);
+    public enum LiftPosition {
+        FORWARD(0), LOWGOAL(-1250), MIDGOAL(-2900), CAROUSEL(-2800), MAX(-4000);
+
+        public int position;
+
+        LiftPosition(int position) {
+            this.position = position;
+        }
+    }
+
+    public void lift(LiftPosition position) {
+        lift.setTargetPosition(position.position);
+        lift.setMode(RUN_TO_POSITION);
+        lift.setPower(LiftMode.FORWARD.power);
+    }
+
+    public enum IntakeMode {
+        FORWARD(0.50), NEUTRAL(0), REVERSE(-0.50), CAROUSEL(0.10);
 
         public double power;
 
-        IntakeWheelMode(double power) {
+        IntakeMode(double power) {
             this.power = power;
         }
     }
 
-    public IntakeWheelMode intakeWheelMode = IntakeWheelMode.NEUTRAL;
-
-    public void intake(IntakeWheelMode mode) {
+    public void intake(IntakeMode mode) {
         intake.setPower(mode.power);
-        intakeWheelMode = mode;
     }
-    public void intake(IntakeWheelMode mode, int milliseconds) {
+
+    public void intake(IntakeMode mode, int milliseconds) {
         intake(mode);
         opMode.sleep(milliseconds);
-        intake(IntakeWheelMode.NEUTRAL);
+        intake(IntakeMode.NEUTRAL);
     }
+
     public void addTelemetry() {
         Telemetry telemetry = opMode.telemetry;
 

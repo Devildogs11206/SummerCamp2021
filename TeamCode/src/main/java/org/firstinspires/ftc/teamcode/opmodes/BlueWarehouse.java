@@ -1,20 +1,21 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import static org.firstinspires.ftc.teamcode.internal.Robot.IntakeMode.FORWARD;
+import static org.firstinspires.ftc.teamcode.internal.Robot.LiftMode.BACKWARD;
+import static org.firstinspires.ftc.teamcode.internal.Robot.LiftPosition.LOWGOAL;
 
-import org.firstinspires.ftc.teamcode.internal.Robot;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous
 public class BlueWarehouse extends BlueOpMode {
     @Override
     protected void execute() {
         robot.drivePower = 0.5;
-        robot.lift(Robot.LiftMode.BACKWARD,500);
+        robot.lift(LOWGOAL);
         robot.drive(1,0,0, 24);
         robot.turn(1,-45);
-        robot.intake(Robot.IntakeWheelMode.FORWARD,500);
-        robot.drive(0,1,-90,30);
-        robot.drive(-1,0,-90,36);
-
+        robot.intake(FORWARD,500);
+        robot.drive(0,-1,90,30);
+        robot.drive(1,0,90,36);
     }
 }
