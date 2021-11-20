@@ -6,7 +6,7 @@ import static org.firstinspires.ftc.teamcode.internal.Robot.LiftPosition.MAX;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous
-public class BlueWarehouse extends BlueOpMode {
+public class BlueWarehouseStrafe extends BlueOpMode {
     @Override
     protected void execute() {
         robot.drivePower = 0.5;
@@ -16,5 +16,6 @@ public class BlueWarehouse extends BlueOpMode {
         robot.intake(FORWARD,500);
         robot.drive(0,-1,90,30);
         robot.drive(1,0,90,36);
+        robot.drive(0,1,90,20);
     }
 }

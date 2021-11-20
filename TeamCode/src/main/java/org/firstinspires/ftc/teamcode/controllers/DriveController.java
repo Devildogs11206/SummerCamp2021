@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.controllers;
 import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 
 public class DriveController extends RobotController {
-    private static final double HIGH = 1;
-    private static final double MEDIUM = .75;
+    private static final double HIGH = 0.8;
+    private static final double MEDIUM = .5;
     private static final double LOW = .25;
 
     public DriveController(OpMode opMode) {
