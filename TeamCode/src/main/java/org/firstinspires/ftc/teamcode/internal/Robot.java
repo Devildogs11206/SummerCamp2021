@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.opmodes.OpMode;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.FORWARD;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.MECANUM;
 import static org.firstinspires.ftc.teamcode.internal.Robot.RobotDriveType.STANDARD;
@@ -50,25 +51,25 @@ public class Robot {
         drivePower = 0.5;
 
         driveLeftFront = hardwareMap.get(DcMotor.class, "driveLeftFront");
-        driveLeftFront.setDirection(REVERSE);
+        driveLeftFront.setDirection(FORWARD);
         driveLeftFront.setZeroPowerBehavior(BRAKE);
         driveLeftFront.setMode(STOP_AND_RESET_ENCODER);
         driveLeftFront.setMode(RUN_USING_ENCODER);
 
         driveRightFront = hardwareMap.get(DcMotor.class,"driveRightFront");
-        driveRightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        driveRightFront.setDirection(REVERSE);
         driveRightFront.setZeroPowerBehavior(BRAKE);
         driveRightFront.setMode(STOP_AND_RESET_ENCODER);
         driveRightFront.setMode(RUN_USING_ENCODER);
 
         driveLeftRear = hardwareMap.get(DcMotor.class,"driveLeftRear");
-        driveLeftRear.setDirection(REVERSE);
+        driveLeftRear.setDirection(FORWARD);
         driveLeftRear.setZeroPowerBehavior(BRAKE);
         driveLeftRear.setMode(STOP_AND_RESET_ENCODER);
         driveLeftRear.setMode(RUN_USING_ENCODER);
 
         driveRightRear = hardwareMap.get(DcMotor.class, "driveRightRear");
-        driveRightRear.setDirection(DcMotorSimple.Direction.FORWARD);
+        driveRightRear.setDirection(REVERSE);
         driveRightRear.setZeroPowerBehavior(BRAKE);
         driveRightRear.setMode(STOP_AND_RESET_ENCODER);
         driveRightRear.setMode(RUN_USING_ENCODER);
